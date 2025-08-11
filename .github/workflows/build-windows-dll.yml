@@ -1,0 +1,39 @@
+name: Build Windows DLL
+
+on:
+  workflow_dispatch: # позволяет запускать вручную
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            make
+            git
+
+      - name: Build DLL
+        shell: msys2 {0}
+        run: |
+          export MSYS=winsymlinks:native
+          make clean
+          make shared
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hev-socks5-tunnel-windows
+          path: |
+            **/hev-socks5-tunnel.dll
+            **/hev-socks5-tunnel.lib
+            **/hev-socks5-tunnel.exp
